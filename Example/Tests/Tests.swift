@@ -1,5 +1,5 @@
 import XCTest
-import com.awareframework.ios.sensor.rotation
+import com_awareframework_ios_sensor_rotation
 
 class Tests: XCTestCase {
     
