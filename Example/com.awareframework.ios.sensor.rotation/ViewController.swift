@@ -18,16 +18,16 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
         sensor = RotationSensor.init(RotationSensor.Config().apply{config in
             config.debug = true
-            config.sensorObserver = Observer()
+            // config.sensorObserver = Observer()
         })
         sensor?.start()
     }
 
-    class Observer:RotationObserver{
-        func onChanged(data: RotationData) {
-            print(data)
-        }
-    }
+//    class Observer:RotationObserver{
+//        func onOnChanged(data: RotationData) {
+//            print(data)
+//        }
+//    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

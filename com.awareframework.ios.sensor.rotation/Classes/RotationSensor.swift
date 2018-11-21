@@ -24,7 +24,7 @@ extension Notification.Name{
 }
 
 public protocol RotationObserver{
-    func onChanged(data:RotationData)
+    func onDataChanged(data:RotationData)
 }
 
 extension RotationSensor {
@@ -69,7 +69,7 @@ public class RotationSensor: AwareSensor {
          * 5 - sample per second
          * 20 - sample per second
          */
-        public var interval: Int = 5
+        public var frequency: Int = 5
         
         /**
          * Period to save data in minutes. (optional)
@@ -108,7 +108,7 @@ public class RotationSensor: AwareSensor {
     public override func start() {
         if motion.isDeviceMotionAvailable{
             if !motion.isDeviceMotionActive {
-                self.motion.deviceMotionUpdateInterval = 1.0/Double(CONFIG.interval)
+                self.motion.deviceMotionUpdateInterval = 1.0/Double(CONFIG.frequency)
                 self.motion.showsDeviceMovementDisplay = true // TODO: true of false ?
                 // self.motion.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
                 self.motion.startDeviceMotionUpdates(to: .main) { (motionData, error) in
@@ -163,7 +163,7 @@ public class RotationSensor: AwareSensor {
                         }
                         
                         if let observer = self.CONFIG.sensorObserver{
-                            observer.onChanged(data: data)
+                            observer.onDataChanged(data: data)
                         }
                         
                         if currentTime > self.LAST_SAVE + (self.CONFIG.period * 60) {
