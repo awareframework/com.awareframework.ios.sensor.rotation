@@ -48,7 +48,7 @@ extension RotationSensor {
 
 public class RotationSensor: AwareSensor {
     
-    var CONFIG = RotationSensor.Config()
+    public var CONFIG = RotationSensor.Config()
     var motion = CMMotionManager()
     var LAST_DATA:CMDeviceMotion?
     var LAST_TS:Double   = 0.0
