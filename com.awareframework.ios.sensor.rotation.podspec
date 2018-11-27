@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
   s.name             = 'com.awareframework.ios.sensor.rotation'
   s.version          = '0.1.2'
-  s.summary          = 'com.awareframework.ios.sensor.rotation (Rotation) is a sensor module for Aware Framework.'
+  s.summary          = 'A Rotation Sensor Module for AWARE Framework.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -44,6 +44,6 @@ https://developer.apple.com/documentation/coremotion/cmmotionmanager
   # s.frameworks = 'UIKit', 'MapKit'
   s.frameworks = 'CoreMotion'
   # s.dependency 'AFNetworking', '~> 2.3'
-  s.dependency 'com.awareframework.ios.sensor.core'
+  s.dependency 'com.awareframework.ios.sensor.core', '~> 0.3.1'
   
 end

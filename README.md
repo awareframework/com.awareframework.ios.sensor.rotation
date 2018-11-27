@@ -1,15 +1,18 @@
-# Aware Rotation
+# AWARE: Rotation
 
-[![CI Status](https://img.shields.io/travis/tetujin/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://travis-ci.org/tetujin/com.awareframework.ios.sensor.rotation)
+[![CI Status](https://img.shields.io/travis/awareframework/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://travis-ci.org/awareframework/com.awareframework.ios.sensor.rotation)
 [![Version](https://img.shields.io/cocoapods/v/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://cocoapods.org/pods/com.awareframework.ios.sensor.rotation)
 [![License](https://img.shields.io/cocoapods/l/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://cocoapods.org/pods/com.awareframework.ios.sensor.rotation)
 [![Platform](https://img.shields.io/cocoapods/p/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://cocoapods.org/pods/com.awareframework.ios.sensor.rotation)
 
-## Example
+This sensor module allows us to access the **rotation rate** of the device. A rotation data contains data specifying the device’s rate of rotation around three axes. The value of this property contains a measurement of gyroscope data whose bias has been removed by Core Motion algorithms. Please check the link below for details.
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+[ Apple | Getting Processed Device-Motion Data ](https://developer.apple.com/documentation/coremotion/getting_processed_device-motion_data)
+
+[ Apple | CMDeviceMotion | rotation ](https://developer.apple.com/documentation/coremotion/cmdevicemotion/1615967-rotationrate)
 
 ## Requirements
+iOS 10 or later
 
 ## Installation
 
@@ -29,8 +32,8 @@ import com_awareframework_ios_sensor_rotation
 ## Public functions
 ### RotationSensor
 
-+ `init(config:MagnetometerSensor.Config?)` : Initializes the rotation sensor with the optional configuration.
-+ `start()`: Starts the gyroscope sensor with the optional configuration.
++ `init(config:RotationSensor.Config?)` : Initializes the rotation sensor with the optional configuration.
++ `start()`: Starts the rotation sensor with the optional configuration.
 + `stop()`: Stops the service.
 
 ### RotationSensor.Config
@@ -48,7 +51,7 @@ Class to hold the configuration of the sensor.
 + `deviceId: String` Id of the device that will be associated with the events and the sensor. (default = "")
 + `dbEncryptionKey` Encryption key for the database. (default = `null`)
 + `dbType: Engine` Which db engine to use for saving data. (default = `Engine.DatabaseType.NONE`)
-+ `dbPath: String` Path of the database. (default = "aware_gyroscope")
++ `dbPath: String` Path of the database. (default = "aware_rotation")
 + `dbHost: String` Host for syncing the database. (default = `null`)
 
 ## Broadcasts
@@ -105,7 +108,7 @@ class Observer:RotationObserver{
 
 ## Author
 
-Yuuki Nishiyama, tetujin@ht.sfc.keio.ac.jp
+Yuuki Nishiyama, yuuki.nishiyama@oulu.fi
 
 ## License
 

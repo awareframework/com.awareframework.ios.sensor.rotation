@@ -82,9 +82,25 @@ public class RotationSensor: AwareSensor {
          */
         public var threshold: Double = 0.0
         
-        public override init(){}
+        public override init(){
+            super.init()
+            dbPath = "aware_rotation"
+        }
         
-        public init(_ json:JSON){
+        public override func set(config: Dictionary<String, Any>) {
+            super.set(config: config)
+            
+            if let frequency = config["frequency"] as? Int {
+                self.frequency = frequency
+            }
+            
+            if let period = config["period"] as? Double {
+                self.period = period
+            }
+            
+            if let threshold = config["threshold"] as? Double {
+                self.threshold = threshold
+            }
             
         }
         
@@ -94,7 +110,7 @@ public class RotationSensor: AwareSensor {
         }
     }
     
-    override convenience init(){
+    public override convenience init(){
         self.init(RotationSensor.Config())
     }
     
