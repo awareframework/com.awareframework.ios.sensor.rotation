@@ -211,7 +211,7 @@ public class RotationSensor: AwareSensor {
     
     public override func sync(force: Bool = false) {
         if let engine = self.dbEngine {
-            engine.startSync(RotationData.TABLE_NAME, DbSyncConfig.init().apply{config in
+            engine.startSync(RotationData.TABLE_NAME, RotationData.self, DbSyncConfig.init().apply{config in
                 config.debug = true
             })
         }

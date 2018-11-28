@@ -1,20 +1,26 @@
-# references:
-# * https://www.objc.io/issues/6-build-tools/travis-ci/
-# * https://github.com/supermarin/xcpretty#usage
-
 osx_image: xcode10.1
 language: objective-c
-xcode_workspace: Example/com.awareframework.ios.sensor.rotation.xcworkspace
-xcode_scheme: com.awareframework.ios.sensor.rotation-Tests
-xcode_destination: platform=iOS simulator, OS=12.0, name=iPhone X
 cache: cocoapods
 podfile: Example/Podfile
 before_install:
- - gem install cocoapods # Since Travis is not always on latest version
-
-
-# - pod install --project-directory=Example
-# script:
-# iphonesimulator12.0  ONLY_ACTIVE_ARCH=NO | xcpretty
-# - set -o pipefail && xcodebuild test -enableCodeCoverage YES -workspace Example/com.awareframework.ios.sensor.rotation.xcworkspace -scheme com.awareframework.ios.sensor.rotation-Example -sdk iphonesimulator9.3 ONLY_ACTIVE_ARCH=NO | xcpretty
-- pod lib lint
+- gem install cocoapods
+- pod repo update
+- pod install --project-directory=Example
+script:
+- set -o pipefail && xcodebuild test -enableCodeCoverage YES -workspace Example/com.awareframework.ios.sensor.rotation.xcworkspace
+  -scheme com.awareframework.ios.sensor.rotation-Example -sdk iphonesimulator12.1
+  -destination OS=12.1,name="iPhone X" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_REQUIRED=NO
+  -allowProvisioningUpdates | XCPRETTY
+deploy:
+  provider: script
+  script: "./scripts/release.sh"
+  on:
+    tags: true
+after_success:
+- echo 'success!'
+env:
+  global:
+  - secure: QI6PJrCw1jfLMaOHgI81SY5JA7IceD+QdQnfm01l7Yo0tW5pAueSOoDdVWoS42VCWe/p0GDyBy2/u+ZVV26OkjxF+SHdKYjbYPVCwNIZKSGBEK7AlNUUFyqM0Sw+yaBbKHejfMQqDYQVCKIXBVk0wlpnWHIC2IAtbQFW1bc0fcr2asAuLVapNgnzrte5HBrgpaEAqjhNGnGxDlywlo1yobJ9PHhwWoZrTDYz82PLTXbRCLM/UlDPw3AebZ5w9GwpLeLm+436qtYMQz+WvJWpsgIWQ83o+atYEX7HYcLPiTrpX2Q71ryukBNZAtoSVH9Eo5Gjh+ibcstVJJJDgNm6Qg1LL0rAAGhR1k+oW0yiNH0Q8lK7tDRQjHieFwhPPDQ76giUCnJ7LL43E/SAg8Hfm97AzIQYkSaXcJXyXrMEs3qwD3LvQtz/9eGAq1cds1qA6/ZxJ3hMW/zRelPDSIf82zCQlU/sPhDHxxyRWXvyke1vobZFwxKAnVcuHt1gtUvf3l2ls4GGSuft8gLhGzADnWnE7uoHqe2ZRt+IFwJ8uYWNCewPVBsoxRQKuVPrFdh+KnoBskvwuvCBH4hBLH3V4VFGStLihB43dQKaWL1Wbl8JmKStrg2H9zt/xqLAMoetXJl/b7mIwM/9o8RYDchHqJS2al3uOu1xR8l2Kg6cHHc=
+notifications:
+  slack:
+    secure: jEHqf505k8ygZ8P3OjrvCzKVKXwL2mRUpGx8gEcjOBIOgmn78mpSpsyBMiaYYPVUi1MYtJBQCxdjQtgt8iNZHmgqDewE21v1TWygc4HtHkLmXZdH1SxTA9Dmx+Lsblb6v+ir5PCAzUWqIjkri9LzILB7YxkugIDAhbyRTvZDk7ckhfxGb6GBRcCuUZCag0VCDpcC8rBywJeLvYNlzfvUeBZoI+HZCxQlP4ttmW6WoEKOqAm+SifcQMnupOPuVii92H4dqtnx2jVGvQdZakJO7Nws+Uy9I9GKFlyNj8l/YszGThksbhAA293LRBVfoqXzC5ZC8WhQXotENuER5Nxx03eZo6Du1P7bvYXiTFImK7nhGLHLt7UJCV5yeydALIy4yBJPobadOH/710Y9Q5Mjo3owQQDwKn9hLIrhBeYadcsoesH2NGH28gceM7ux3OJ3m65iThmLpdy2rFWbCaXJ4kv6juks4cBrzZVcVNwulVKIZVLYPAA8Bgcd3oLqJuBe6M3ooT23VLXDWR16Ay+oUvJRBSL1tm80P7RMZjrTGmmwqRHIvNfP/LpmYqKhS2FhB7smVkwhN3FIoexwi3JjujigaCWs/MAJluIRClMvKSVMIYImcXTh/SV8SryXG2TXzTbx8SYNrO/tz0TSUKbkERfdSKP2/zpYU+dxo8R83Us=
