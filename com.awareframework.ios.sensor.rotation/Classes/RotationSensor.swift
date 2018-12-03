@@ -182,6 +182,8 @@ public class RotationSensor: AwareSensor {
                             observer.onDataChanged(data: data)
                         }
                         
+                        self.dataBuffer.append(data)
+                        
                         if currentTime < self.LAST_SAVE + (self.CONFIG.period * 60) {
                             return
                         }
