@@ -216,6 +216,14 @@ public class RotationSensor: AwareSensor {
             engine.startSync(RotationData.TABLE_NAME, RotationData.self, DbSyncConfig.init().apply{config in
                 config.debug = true
             })
+            self.notificationCenter.post(name: .actionAwareRotationSync, object: nil)
         }
+    }
+    
+    public func set(label:String) {
+        self.CONFIG.label = label
+        self.notificationCenter.post(name: .actionAwareRotationSetLabel,
+                                     object: nil,
+                                     userInfo: [RotationSensor.EXTRA_LABEL:label])
     }
 }

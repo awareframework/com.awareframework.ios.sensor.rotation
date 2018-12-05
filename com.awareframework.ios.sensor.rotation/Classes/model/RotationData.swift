@@ -25,7 +25,7 @@ public class RotationData: AwareObject {
         dict["y"] = y
         dict["z"] = z
         dict["w"] = w
-        
+        dict["eventTimestamp"] = eventTimestamp
         dict["accuracy"] = accuracy
         return dict
     }

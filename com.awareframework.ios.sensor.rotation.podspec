@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'com.awareframework.ios.sensor.rotation'
-  s.version       = '0.2.3'
+  s.version       = '0.2.4'
   s.summary          = 'A Rotation Sensor Module for AWARE Framework.'
 
 # This description is used to generate tags and improve search results.
@@ -44,6 +44,6 @@ https://developer.apple.com/documentation/coremotion/cmmotionmanager
   # s.frameworks = 'UIKit', 'MapKit'
   s.frameworks = 'CoreMotion'
   # s.dependency 'AFNetworking', '~> 2.3'
-  s.dependency 'com.awareframework.ios.sensor.core', '~> 0.3.1'
+  s.dependency 'com.awareframework.ios.sensor.core', '~> 0.3.3'
   
 end
