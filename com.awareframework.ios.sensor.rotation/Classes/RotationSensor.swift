@@ -21,6 +21,9 @@ extension Notification.Name{
     public static let actionAwareRotationStop = Notification.Name(RotationSensor.ACTION_AWARE_ROTATION_STOP)
     public static let actionAwareRotationSetLabel = Notification.Name(RotationSensor.ACTION_AWARE_ROTATION_SET_LABEL)
     public static let actionAwareRotationSync = Notification.Name(RotationSensor.ACTION_AWARE_ROTATION_SYNC)
+    
+    public static let actionAwareRotationSyncCompletion  = Notification.Name(RotationSensor.ACTION_AWARE_ROTATION_SYNC_COMPLETION)
+    
 }
 
 public protocol RotationObserver{
@@ -39,6 +42,10 @@ extension RotationSensor {
     public static var EXTRA_LABEL = "label"
     
     public static var ACTION_AWARE_ROTATION_SYNC = "com.awareframework.android.sensor.rotation.SENSOR_SYNC"
+    
+    public static let ACTION_AWARE_ROTATION_SYNC_COMPLETION = "com.awareframework.ios.sensor.rotation.SENSOR_SYNC_COMPLETION"
+    public static let EXTRA_STATUS = "status"
+    public static let EXTRA_ERROR = "error"
 }
 
 /**
@@ -51,8 +58,8 @@ public class RotationSensor: AwareSensor {
     public var CONFIG = RotationSensor.Config()
     var motion = CMMotionManager()
     var LAST_DATA:CMDeviceMotion?
-    var LAST_TS:Double   = 0.0
-    var LAST_SAVE:Double = 0.0
+    var LAST_TS:Double   = Date().timeIntervalSince1970
+    var LAST_SAVE:Double = Date().timeIntervalSince1970
     public var dataBuffer = Array<RotationData>()
     
     public class Config:SensorConfig{
@@ -177,6 +184,7 @@ public class RotationSensor: AwareSensor {
                             data.accuracy = 3 // SENSOR_STATUS_ACCURACY_HIGH
                             break
                         }
+                        data.label = self.CONFIG.label
                         
                         if let observer = self.CONFIG.sensorObserver{
                             observer.onDataChanged(data: data)
@@ -189,15 +197,26 @@ public class RotationSensor: AwareSensor {
                         }
                         
                         let dataArray = Array(self.dataBuffer)
-                        self.dbEngine?.save(dataArray, RotationData.TABLE_NAME)
-                        self.notificationCenter.post(name: .actionAwareRotation, object: nil)
-                        
+                        if let engine = self.dbEngine{
+                            let queue = DispatchQueue(label:"com.awareframework.ios.sensor.rotation.save.queue")
+                            queue.async {
+                                engine.save(dataArray){ error in
+                                    if error == nil {
+                                        DispatchQueue.main.async {
+                                            self.notificationCenter.post(name: .actionAwareRotation, object: self)
+                                        }
+                                    }else{
+                                        if self.CONFIG.debug{ print(error!) }
+                                    }
+                                }
+                            }
+                        }
                         self.dataBuffer.removeAll()
                         self.LAST_SAVE = currentTime
                         
                     }
                 }
-                self.notificationCenter.post(name: .actionAwareRotationStart, object: nil)
+                self.notificationCenter.post(name: .actionAwareRotationStart, object: self)
             }
         }
     }
@@ -206,7 +225,7 @@ public class RotationSensor: AwareSensor {
         if motion.isDeviceMotionActive{
             if motion.isDeviceMotionActive{
                 self.motion.stopDeviceMotionUpdates()
-                self.notificationCenter.post(name: .actionAwareRotationStop, object: nil)
+                self.notificationCenter.post(name: .actionAwareRotationStop, object: self)
             }
         }
     }
@@ -214,16 +233,26 @@ public class RotationSensor: AwareSensor {
     public override func sync(force: Bool = false) {
         if let engine = self.dbEngine {
             engine.startSync(RotationData.TABLE_NAME, RotationData.self, DbSyncConfig.init().apply{config in
-                config.debug = true
+                config.debug = self.CONFIG.debug
+                config.dispatchQueue = DispatchQueue(label: "com.awareframework.ios.sensor.rotation.sync.queue")
+                config.completionHandler = { (status, error) in
+                    var userInfo: Dictionary<String,Any> = [RotationSensor.EXTRA_STATUS :status]
+                    if let e = error {
+                        userInfo[RotationSensor.EXTRA_ERROR] = e
+                    }
+                    self.notificationCenter.post(name: .actionAwareRotationSyncCompletion ,
+                                                 object: self,
+                                                 userInfo:userInfo)
+                }
             })
-            self.notificationCenter.post(name: .actionAwareRotationSync, object: nil)
+            self.notificationCenter.post(name: .actionAwareRotationSync, object: self)
         }
     }
     
-    public func set(label:String) {
+    public override func set(label:String) {
         self.CONFIG.label = label
         self.notificationCenter.post(name: .actionAwareRotationSetLabel,
-                                     object: nil,
+                                     object: self,
                                      userInfo: [RotationSensor.EXTRA_LABEL:label])
     }
 }

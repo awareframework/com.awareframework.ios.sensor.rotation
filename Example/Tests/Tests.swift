@@ -15,72 +15,7 @@ class Tests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
-    func testSensingFrequency(){
-        
-        #if targetEnvironment(simulator)
-        print("This test requires a real device.")
-        
-        #else
-        /////////// 10 FPS //////
-        let sensor = RotationSensor.init(RotationSensor.Config().apply{ config in
-            config.debug = true
-            config.dbType = .REALM
-            config.frequency = 10
-        })
-        sensor.start() // start sensor
-        print(1.0/Double(sensor.CONFIG.frequency))
-        let expect = expectation(description: "Sensing test (10FPS)")
-        let observer = NotificationCenter.default.addObserver(forName: Notification.Name.actionAwareRotation,
-                                                              object: nil,
-                                                              queue: .main) { (notification) in
-            if let engine = sensor.dbEngine {
-                if let results =  engine.fetch(RotationData.TABLE_NAME, RotationData.self, nil) as? Results<Object>{
-                    print(results.count)
-                    if (results.count > 1) {
-                        let idealCount = 60*sensor.CONFIG.frequency
-                        print("ideal count = ",idealCount)
-                        if results.count >= (idealCount-100) && results.count <= (idealCount+100) {
-                            for object in results{
-                                if let o = object as? AwareObject{
-                                    engine.remove(o, RotationData.TABLE_NAME)
-                                }
-                            }
-                            expect.fulfill()
-                        }else{
-                            XCTFail()
-                        }
-                        
-                    }
-                }
-            }
-        }
-        wait(for: [expect], timeout: (sensor.CONFIG.period * 60) + 5)
-        NotificationCenter.default.removeObserver(observer)
-        sensor.stop()
-        
-        #endif
-    }
-    
-    func testSync(){
-        //        let sensor = RotationSensor.init(RotationSensor.Config().apply{ config in
-        //            config.debug = true
-        //            config.dbType = .REALM
-        //            config.dbHost = "node.awareframework.com/dgc"
-        //        })
-        //        sensor.start();
-        //        sensor.enable();
-        //        sensor.sync(force: true)
-        
-        //        let syncManager = DbSyncManager.Builder()
-        //            .setBatteryOnly(false)
-        //            .setWifiOnly(false)
-        //            .setSyncInterval(1)
-        //            .build()
-        //
-        //        syncManager.start()
-    }
-    
+
     func testObserver(){
         #if targetEnvironment(simulator)
         print("This test requires a real device.")
@@ -220,7 +155,187 @@ class Tests: XCTestCase {
         XCTAssertEqual(frequency, sensor.CONFIG.frequency)
         XCTAssertEqual(threshold, sensor.CONFIG.threshold)
         XCTAssertEqual(period, sensor.CONFIG.period)
+    }
+    
+    func testSensorFrequency(){
         
+        #if targetEnvironment(simulator)
+        print("This test requires a real Rotation.")
+        
+        #else
+        /////////// 10 FPS //////
+        let sensor = RotationSensor.init(RotationSensor.Config().apply{ config in
+            config.debug = true
+            config.dbType = .REALM
+            config.frequency = 10
+            config.period = 1.0/60.0
+            config.dbPath = "sensor_frequency"
+        })
+        
+        if let engine = sensor.dbEngine {
+            engine.removeAll(RotationData.self)
+        }
+        
+        let expect = expectation(description: "Frequency Test (10FPS)")
+        let center = NotificationCenter.default
+        let observer = center.addObserver(forName: Notification.Name.actionAwareRotation,
+                                          object: sensor,
+                                          queue: .main) { (notification) in
+                                            if let engine = sensor.dbEngine {
+                                                engine.fetch(RotationData.self, nil){ (resultsObject, error) in
+                                                    if let results = resultsObject as? Results<Object> {
+                                                        print("ideal count = ",sensor.CONFIG.frequency)
+                                                        print("real count  = ",results.count)
+                                                        if results.count > 0 {
+                                                            if results.count >= sensor.CONFIG.frequency-1 &&
+                                                                results.count <= (sensor.CONFIG.frequency+1) {
+                                                                expect.fulfill()
+                                                            }else{
+                                                                XCTFail()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+        }
+        
+        sensor.start() // start sensor
+        
+        wait(for: [expect], timeout: 20)
+        NotificationCenter.default.removeObserver(observer)
+        sensor.stop()
+        
+        #endif
+    }
+    
+    
+    
+    
+    
+    func testSyncModule(){
+        #if targetEnvironment(simulator)
+        
+        print("This test requires a real Rotation.")
+        
+        #else
+        // success //
+        let sensor = RotationSensor.init(RotationSensor.Config().apply{ config in
+            config.debug = true
+            config.dbType = .REALM
+            config.dbHost = "node.awareframework.com:1001"
+            config.dbPath = "sync_db"
+        })
+        if let engine = sensor.dbEngine as? RealmEngine {
+            engine.removeAll(RotationData.self)
+            for _ in 0..<100 {
+                engine.save(RotationData())
+            }
+        }
+        let successExpectation = XCTestExpectation(description: "success sync")
+        let observer = NotificationCenter.default.addObserver(forName: Notification.Name.actionAwareRotationSyncCompletion,
+                                                              object: sensor, queue: .main) { (notification) in
+                                                                if let userInfo = notification.userInfo{
+                                                                    if let status = userInfo["status"] as? Bool {
+                                                                        if status == true {
+                                                                            successExpectation.fulfill()
+                                                                        }
+                                                                    }
+                                                                }
+        }
+        sensor.sync(force: true)
+        wait(for: [successExpectation], timeout: 20)
+        NotificationCenter.default.removeObserver(observer)
+        
+        ////////////////////////////////////
+        
+        // failure //
+        let sensor2 = RotationSensor.init(RotationSensor.Config().apply{ config in
+            config.debug = true
+            config.dbType = .REALM
+            config.dbHost = "node.awareframework.com.com" // wrong url
+            config.dbPath = "sync_db"
+        })
+        let failureExpectation = XCTestExpectation(description: "failure sync")
+        let failureObserver = NotificationCenter.default.addObserver(forName: Notification.Name.actionAwareRotationSyncCompletion,
+                                                                     object: sensor2, queue: .main) { (notification) in
+                                                                        if let userInfo = notification.userInfo{
+                                                                            if let status = userInfo["status"] as? Bool {
+                                                                                if status == false {
+                                                                                    failureExpectation.fulfill()
+                                                                                }
+                                                                            }
+                                                                        }
+        }
+        if let engine = sensor2.dbEngine as? RealmEngine {
+            engine.removeAll(RotationData.self)
+            for _ in 0..<100 {
+                engine.save(RotationData())
+            }
+        }
+        sensor2.sync(force: true)
+        wait(for: [failureExpectation], timeout: 20)
+        NotificationCenter.default.removeObserver(failureObserver)
+        
+        #endif
+    }
+    
+    //////////// storage ///////////
+    var realmToken:NotificationToken? = nil
+    
+    func testSensorModule(){
+        
+        #if targetEnvironment(simulator)
+        
+        print("This test requires a real Rotation.")
+        
+        #else
+        
+        let sensor = RotationSensor.init(RotationSensor.Config().apply{ config in
+            config.debug = true
+            config.dbType = .REALM
+            config.dbPath = "sensor_module"
+            config.period = 1.0/60.0
+        })
+        let expect = expectation(description: "sensor module")
+        if let realmEngine = sensor.dbEngine as? RealmEngine {
+            // remove old data
+            realmEngine.removeAll(RotationData.self)
+            // get a RealmEngine Instance
+            if let realm = realmEngine.getRealmInstance() {
+                // set Realm DB observer
+                realmToken = realm.observe { (notification, realm) in
+                    switch notification {
+                    case .didChange:
+                        // check database size
+                        let results = realm.objects(RotationData.self)
+                        print(results.count)
+                        XCTAssertGreaterThanOrEqual(results.count, 1)
+                        realm.invalidate()
+                        expect.fulfill()
+                        self.realmToken = nil
+                        break;
+                    case .refreshRequired:
+                        break;
+                    }
+                }
+            }
+        }
+        
+        let storageExpect = expectation(description: "sensor storage notification")
+        var token: NSObjectProtocol?
+        token = NotificationCenter.default.addObserver(forName: Notification.Name.actionAwareRotation,
+                                                       object: sensor,
+                                                       queue: .main) { (notification) in
+                                                        storageExpect.fulfill()
+                                                        NotificationCenter.default.removeObserver(token!)
+        }
+        
+        sensor.start() // start sensor
+        
+        wait(for: [expect,storageExpect], timeout: 65)
+        sensor.stop()
+        
+        #endif
     }
     
 }
