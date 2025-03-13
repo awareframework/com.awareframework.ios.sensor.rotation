@@ -1,9 +1,7 @@
 # AWARE: Rotation
 
-[![CI Status](https://img.shields.io/travis/awareframework/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://travis-ci.org/awareframework/com.awareframework.ios.sensor.rotation)
-[![Version](https://img.shields.io/cocoapods/v/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://cocoapods.org/pods/com.awareframework.ios.sensor.rotation)
-[![License](https://img.shields.io/cocoapods/l/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://cocoapods.org/pods/com.awareframework.ios.sensor.rotation)
-[![Platform](https://img.shields.io/cocoapods/p/com.awareframework.ios.sensor.rotation.svg?style=flat)](https://cocoapods.org/pods/com.awareframework.ios.sensor.rotation)
+[![Swift Package Manager compatible](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
+
 
 This sensor module allows us to access the **rotation rate** of the device. A rotation data contains data specifying the device’s rate of rotation around three axes. The value of this property contains a measurement of gyroscope data whose bias has been removed by Core Motion algorithms. Please check the link below for details.
 
@@ -12,9 +10,28 @@ This sensor module allows us to access the **rotation rate** of the device. A ro
 [ Apple | CMDeviceMotion | rotation ](https://developer.apple.com/documentation/coremotion/cmdevicemotion/1615967-rotationrate)
 
 ## Requirements
-iOS 10 or later
+iOS 13 or later
+
 
 ## Installation
+
+You can integrate this framework into your project via Swift Package Manager (SwiftPM) or CocoaPods.
+
+### SwiftPM
+1. Open Package Manager Windows
+    * Open `Xcode` -> Select `Menu Bar` -> `File` -> `App Package Dependencies...` 
+
+2. Find the package using the manager
+    * Select `Search Package URL` and type `git@github.com:awareframework/com.awareframework.ios.sensor.activityrecognition.git`
+
+3. Import the package into your target.
+
+4. Import com.awareframework.ios.sensor.rotation library into your source code.
+```swift
+import com_awareframework_ios_sensor_rotation
+```
+
+### CocoaPods
 
 com.awareframework.ios.sensor.rotation is available through [CocoaPods](https://cocoapods.org). 
 
@@ -108,7 +125,7 @@ class Observer:RotationObserver{
 
 ## Author
 
-Yuuki Nishiyama, yuukin@iis.u-tokyo.ac.jp
+Yuuki Nishiyama (The University of Tokyo), nishiyama@csis.u-tokyo.ac.jp
 
 ## License
 
