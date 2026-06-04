@@ -13,7 +13,7 @@
 import UIKit
 import SwiftyJSON
 import CoreMotion
-import com_awareframework_ios_sensor_core
+import com_awareframework_ios_core
 
 extension Notification.Name{
     public static let actionAwareRotation = Notification.Name(RotationSensor.ACTION_AWARE_ROTATION)
@@ -61,6 +61,13 @@ public class RotationSensor: AwareSensor {
     var LAST_TS:Double   = Date().timeIntervalSince1970
     var LAST_SAVE:Double = Date().timeIntervalSince1970
     public var dataBuffer = Array<RotationData>()
+    private let motionQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.name = "com.awareframework.ios.sensor.rotation.motion.queue"
+        queue.maxConcurrentOperationCount = 1
+        queue.qualityOfService = .userInitiated
+        return queue
+    }()
     
     public class Config:SensorConfig{
         /**
@@ -134,7 +141,7 @@ public class RotationSensor: AwareSensor {
                 self.motion.deviceMotionUpdateInterval = 1.0/Double(CONFIG.frequency)
                 self.motion.showsDeviceMovementDisplay = true // TODO: true of false ?
                 // self.motion.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
-                self.motion.startDeviceMotionUpdates(to: .main) { (motionData, error) in
+                self.motion.startDeviceMotionUpdates(to: motionQueue) { (motionData, error) in
                     if let mData = motionData {
                         /**
                          * https://developer.apple.com/documentation/coremotion/getting_processed_device-motion_data/understanding_reference_frames_and_device_attitude
@@ -165,7 +172,8 @@ public class RotationSensor: AwareSensor {
                         let currentTime:Double = Date().timeIntervalSince1970
                         self.LAST_TS = currentTime
                         
-                        let data = RotationData()
+                        var data = RotationData()
+                        data.timestamp = Int64(currentTime * 1000)
                         data.x = x
                         data.y = y
                         data.z = z
@@ -225,6 +233,7 @@ public class RotationSensor: AwareSensor {
         if motion.isDeviceMotionActive{
             if motion.isDeviceMotionActive{
                 self.motion.stopDeviceMotionUpdates()
+                self.motionQueue.cancelAllOperations()
                 self.notificationCenter.post(name: .actionAwareRotationStop, object: self)
             }
         }
@@ -232,7 +241,7 @@ public class RotationSensor: AwareSensor {
     
     public override func sync(force: Bool = false) {
         if let engine = self.dbEngine {
-            engine.startSync(RotationData.TABLE_NAME, RotationData.self, DbSyncConfig.init().apply{config in
+            engine.startSync(DbSyncConfig.init().apply{config in
                 config.debug = self.CONFIG.debug
                 config.dispatchQueue = DispatchQueue(label: "com.awareframework.ios.sensor.rotation.sync.queue")
                 config.completionHandler = { (status, error) in
