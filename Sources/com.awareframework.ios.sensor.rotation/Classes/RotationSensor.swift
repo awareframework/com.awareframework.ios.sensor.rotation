@@ -132,6 +132,9 @@ public class RotationSensor: AwareSensor {
         super.init()
         self.CONFIG = config
         self.initializeDbEngine(config: config)
+        super.syncConfig = DbSyncConfig().apply { c in
+            c.dispatchQueue = DispatchQueue(label: "com.awareframework.ios.sensor.rotation.sync.queue")
+        }
         if config.debug{ print(RotationSensor.TAG, "Rotation sensor is created.") }
     }
     
@@ -240,22 +243,15 @@ public class RotationSensor: AwareSensor {
     }
     
     public override func sync(force: Bool = false) {
-        if let engine = self.dbEngine {
-            engine.startSync(DbSyncConfig.init().apply{config in
-                config.debug = self.CONFIG.debug
-                config.dispatchQueue = DispatchQueue(label: "com.awareframework.ios.sensor.rotation.sync.queue")
-                config.completionHandler = { (status, error) in
-                    var userInfo: Dictionary<String,Any> = [RotationSensor.EXTRA_STATUS :status]
-                    if let e = error {
-                        userInfo[RotationSensor.EXTRA_ERROR] = e
-                    }
-                    self.notificationCenter.post(name: .actionAwareRotationSyncCompletion ,
-                                                 object: self,
-                                                 userInfo:userInfo)
-                }
-            })
-            self.notificationCenter.post(name: .actionAwareRotationSync, object: self)
+        guard let engine = self.dbEngine, let syncConfig = self.syncConfig else { return }
+        syncConfig.debug = self.CONFIG.debug
+        syncConfig.completionHandler = { (status, error) in
+            var userInfo: Dictionary<String,Any> = [RotationSensor.EXTRA_STATUS: status]
+            if let e = error { userInfo[RotationSensor.EXTRA_ERROR] = e }
+            self.notificationCenter.post(name: .actionAwareRotationSyncCompletion, object: self, userInfo: userInfo)
         }
+        engine.startSync(syncConfig)
+        self.notificationCenter.post(name: .actionAwareRotationSync, object: self)
     }
     
     public override func set(label:String) {
