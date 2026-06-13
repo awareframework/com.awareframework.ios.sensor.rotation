@@ -60,6 +60,7 @@ public class RotationSensor: AwareSensor {
     var LAST_DATA:CMDeviceMotion?
     var LAST_TS:Double   = Date().timeIntervalSince1970
     var LAST_SAVE:Double = Date().timeIntervalSince1970
+    private var bootReferenceTime: Double = 0
     public var dataBuffer = Array<RotationData>()
     private let motionQueue: OperationQueue = {
         let queue = OperationQueue()
@@ -141,6 +142,7 @@ public class RotationSensor: AwareSensor {
     public override func start() {
         if motion.isDeviceMotionAvailable{
             if !motion.isDeviceMotionActive {
+                bootReferenceTime = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
                 self.motion.deviceMotionUpdateInterval = 1.0/Double(CONFIG.frequency)
                 self.motion.showsDeviceMovementDisplay = true // TODO: true of false ?
                 // self.motion.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
@@ -174,13 +176,13 @@ public class RotationSensor: AwareSensor {
                         self.LAST_DATA = mData
                         let currentTime:Double = Date().timeIntervalSince1970
                         self.LAST_TS = currentTime
-                        
+
                         var data = RotationData()
                         data.timestamp = Int64(currentTime * 1000)
                         data.x = x
                         data.y = y
                         data.z = z
-                        data.eventTimestamp = Int64(mData.timestamp * 1000)
+                        data.eventTimestamp = Int64((self.bootReferenceTime + mData.timestamp) * 1000)
                         switch accuracy {
                         case .uncalibrated:
                             data.accuracy = 0 // SENSOR_STATUS_UNRELIABLE
