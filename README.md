@@ -19,7 +19,7 @@ You can integrate this framework into your project via Swift Package Manager (Sw
 
 ### SwiftPM
 1. Open Package Manager Windows
-    * Open `Xcode` -> Select `Menu Bar` -> `File` -> `App Package Dependencies...` 
+    * Open `Xcode` -> Select `Menu Bar` -> `File` -> `App Package Dependencies...`
 
 2. Find the package using the manager
     * Select `Search Package URL` and type `git@github.com:awareframework/com.awareframework.ios.sensor.rotation.git`
@@ -32,10 +32,10 @@ import com_awareframework_ios_sensor_rotation
 ```
 
 
-## Public functions
+## Public Functions
 ### RotationSensor
 
-+ `init(config:RotationSensor.Config?)` : Initializes the rotation sensor with the optional configuration.
++ `init(config:RotationSensor.Config?)`: Initializes the rotation sensor with the optional configuration.
 + `start()`: Starts the rotation sensor with the optional configuration.
 + `stop()`: Stops the service.
 
@@ -44,24 +44,25 @@ import com_awareframework_ios_sensor_rotation
 Class to hold the configuration of the sensor.
 
 #### Fields
+
 + `sensorObserver: RotationObserver`: Callback for live data updates.
-+ `frequency: Int`: Data samples to collect per second (Hz). (default = 5)
-+ `period: Double`: Period to save data in minutes. (default = 1)
++ `samplingFrequencyHz: Int`: Data samples to collect per second (Hz). (default = `5`)
++ `saveIntervalSeconds: Double`: Interval in seconds at which buffered data is saved to the database. (default = `60`)
 + `threshold: Double`: If set, do not record consecutive points if change in value is less than the set value.
-+ `enabled: Boolean` Sensor is enabled or not. (default = `false`)
-+ `debug: Boolean` enable/disable logging to Xcode console. (default = `false`)
-+ `label: String` Label for the data. (default = "")
-+ `deviceId: String` Id of the device that will be associated with the events and the sensor. (default = "")
-+ `dbEncryptionKey` Encryption key for the database. (default = `null`)
-+ `dbType: Engine` Which db engine to use for saving data. (default = `Engine.DatabaseType.NONE`)
-+ `dbPath: String` Path of the database. (default = "aware_rotation")
-+ `dbHost: String` Host for syncing the database. (default = `null`)
++ `enabled: Bool`: Sensor is enabled or not. (default = `false`)
++ `debug: Bool`: Enable/disable logging. (default = `false`)
++ `label: String`: Label for the data. (default = `""`)
++ `deviceId: String`: Id of the device that will be associated with the events and the sensor. (default = `""`)
++ `dbEncryptionKey: String?`: Encryption key for the database. (default = `nil`)
++ `dbType: DatabaseType`: Which db engine to use for saving data. (default = `.none`)
++ `dbPath: String`: Path of the database. (default = `"aware_rotation"`)
++ `dbHost: String?`: Host for syncing the database. (default = `nil`)
 
 ## Broadcasts
 
 ### Fired Broadcasts
 
-+ `RotationSensor.ACTION_AWARE_ROTATION` fired when rotation saved data to db after the period ends.
++ `RotationSensor.ACTION_AWARE_ROTATION`: fired when rotation saved data to db after the save interval ends.
 
 ### Received Broadcasts
 
@@ -93,10 +94,10 @@ Contains the raw sensor data.
 
 
 
-## Example usage
+## Example Usage
 ```swift
 // Do any additional setup after loading the view, typically from a nib.
-let rotationSensor = RotationSensor.init(RotationSensor.Config().apply{ config in
+let rotationSensor = RotationSensor.init(RotationSensor.Config().apply { config in
     config.sensorObserver = Observer()
     config.debug = true
 })

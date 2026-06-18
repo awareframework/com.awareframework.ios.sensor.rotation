@@ -84,12 +84,12 @@ public class RotationSensor: AwareSensor {
          * 5 - sample per second
          * 20 - sample per second
          */
-        public var frequency: Int = 5
+        public var samplingFrequencyHz: Int = 5
         
         /**
-         * Period to save data in minutes. (optional)
+         * Period to save data in seconds. (optional)
          */
-        public var period: Double = 1.0
+        public var saveIntervalSeconds: Double = 60.0
         
         /**
          * Rotation threshold (float).  Do not record consecutive points if
@@ -105,12 +105,12 @@ public class RotationSensor: AwareSensor {
         public override func set(config: Dictionary<String, Any>) {
             super.set(config: config)
             
-            if let frequency = config["frequency"] as? Int {
-                self.frequency = frequency
+            if let samplingFrequencyHz = config["samplingFrequencyHz"] as? Int {
+                self.samplingFrequencyHz = samplingFrequencyHz
             }
             
-            if let period = config["period"] as? Double {
-                self.period = period
+            if let saveIntervalSeconds = config["saveIntervalSeconds"] as? Double {
+                self.saveIntervalSeconds = saveIntervalSeconds
             }
             
             if let threshold = config["threshold"] as? Double {
@@ -143,7 +143,7 @@ public class RotationSensor: AwareSensor {
         if motion.isDeviceMotionAvailable{
             if !motion.isDeviceMotionActive {
                 bootReferenceTime = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
-                self.motion.deviceMotionUpdateInterval = 1.0/Double(CONFIG.frequency)
+                self.motion.deviceMotionUpdateInterval = 1.0/Double(CONFIG.samplingFrequencyHz)
                 self.motion.showsDeviceMovementDisplay = true // TODO: true of false ?
                 // self.motion.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical)
                 self.motion.startDeviceMotionUpdates(to: motionQueue) { (motionData, error) in
@@ -205,7 +205,7 @@ public class RotationSensor: AwareSensor {
                         
                         self.dataBuffer.append(data)
                         
-                        if currentTime < self.LAST_SAVE + (self.CONFIG.period * 60) {
+                        if currentTime < self.LAST_SAVE + (self.CONFIG.saveIntervalSeconds) {
                             return
                         }
                         
