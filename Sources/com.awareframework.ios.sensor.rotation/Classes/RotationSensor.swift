@@ -223,6 +223,8 @@ public class RotationSensor: AwareSensor {
                         case .high:
                             data.accuracy = 3 // SENSOR_STATUS_ACCURACY_HIGH
                             break
+                        @unknown default:
+                            data.accuracy = 0 // SENSOR_STATUS_UNRELIABLE
                         }
                         data.label = self.CONFIG.label
                         
